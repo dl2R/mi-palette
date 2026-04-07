@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Home from "./Home";
 import Feed from "./Feed";
 import Profile from "./Profile";
+import Signup from "./Signup";
 
 function App() {
   const [view, setView] = useState("home");
