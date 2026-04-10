@@ -3,18 +3,60 @@ import Home from "./Home";
 import Feed from "./Feed";
 import Profile from "./Profile";
 import Signup from "./Signup";
+import Login from "./Login";
 
 function App() {
   const [view, setView] = useState("home");
-
-  // ✨ [추가] 선택된 도시를 기억할 새로운 주머니예요!
   const [selectedCity, setSelectedCity] = useState(null);
+  const [user, setUser] = useState(null);
 
-  // 하단 바 메뉴를 누를 때 실행될 함수
+  // 메뉴 클릭 핸들러: 로그인 여부에 따라 똑똑하게 이동시켜줘요
   const handleMenuClick = (menu) => {
-    setView(menu);
-    // 갤러리 탭을 직접 누를 때는 '전체 보기'로 초기화하고 싶다면 아래 주석을 해제하세요.
-    // if (menu === "feed") setSelectedCity(null);
+    if (menu === "profile" && !user) {
+      setView("login");
+    } else {
+      setView(menu);
+    }
+  };
+
+  // 화면 렌더링 함수
+  const renderContent = () => {
+    if (view === "login") {
+      return (
+        <Login
+          onLoginSuccess={(name) => {
+            setUser(name);
+            setView("profile"); // 로그인하면 바로 내 프로필로 보내주는 게 국룰!
+          }}
+          onGoToSignup={() => setView("signup")}
+        />
+      );
+    }
+
+    if (view === "signup") {
+      return <Signup onBackToLogin={() => setView("login")} />;
+    }
+
+    switch (view) {
+      case "feed":
+        return (
+          <Feed selectedCity={selectedCity} setSelectedCity={setSelectedCity} />
+        );
+      case "profile":
+        return (
+          <Profile
+            setView={setView}
+            setSelectedCity={setSelectedCity}
+            userName={user}
+            onLogout={() => {
+              setUser(null);
+              setView("home");
+            }}
+          />
+        );
+      default:
+        return <Home onGoToLogin={() => setView("login")} user={user} />;
+    }
   };
 
   return (
@@ -23,23 +65,12 @@ function App() {
         fontFamily: '"Noto Serif KR", serif',
         backgroundColor: "#ffffff",
         minHeight: "100vh",
-        paddingBottom: "80px",
+        paddingBottom: "80px", // 하단바 높이만큼 공간 확보
       }}
     >
-      <main>
-        {view === "home" && <Home />}
+      <main>{renderContent()}</main>
 
-        {/* ✨ [수정] Feed에게 선택된 도시 정보를 전달합니다. */}
-        {view === "feed" && (
-          <Feed selectedCity={selectedCity} setSelectedCity={setSelectedCity} />
-        )}
-
-        {/* ✨ [수정] Profile에게 도시를 선택하는 능력을 전달합니다. */}
-        {view === "profile" && (
-          <Profile setView={setView} setSelectedCity={setSelectedCity} />
-        )}
-      </main>
-
+      {/* ✨ 하단 네비게이션 바: 이제 어떤 화면에서든 보입니다! */}
       <nav
         style={{
           position: "fixed",
@@ -55,41 +86,48 @@ function App() {
           zIndex: 1000,
         }}
       >
-        {["feed", "home", "profile"].map((menu) => (
-          <div
-            key={menu}
-            onClick={() => handleMenuClick(menu)} // ✨ [수정] 클릭 시 함수 실행
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <span
+        {["feed", "home", "profile"].map((menu) => {
+          // ✨ 현재 뷰가 'login'이나 'signup'일 때도 'profile' 탭이 활성화되도록 처리!
+          const isActive =
+            view === menu ||
+            (menu === "profile" && (view === "login" || view === "signup"));
+
+          return (
+            <div
+              key={menu}
+              onClick={() => handleMenuClick(menu)}
               style={{
-                fontSize: "9px",
-                letterSpacing: "4px",
-                color: view === menu ? "#000" : "#bbb",
-                fontWeight: view === menu ? "500" : "300",
-                transition: "0.3s",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              {menu === "feed" ? "GALLERY" : menu.toUpperCase()}
-            </span>
-            {view === menu && (
-              <div
+              <span
                 style={{
-                  width: "3px",
-                  height: "3px",
-                  backgroundColor: "#000",
-                  borderRadius: "50%",
+                  fontSize: "9px",
+                  letterSpacing: "4px",
+                  color: isActive ? "#000" : "#bbb",
+                  fontWeight: isActive ? "500" : "300",
+                  transition: "0.3s",
                 }}
-              />
-            )}
-          </div>
-        ))}
+              >
+                {menu === "feed" ? "GALLERY" : menu.toUpperCase()}
+              </span>
+              {isActive && (
+                <div
+                  style={{
+                    width: "3px",
+                    height: "3px",
+                    backgroundColor: "#000",
+                    borderRadius: "50%",
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </nav>
     </div>
   );

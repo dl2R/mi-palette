@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-function Signup() {
+// onBackToLogin: 가입 성공 후 로그인 창으로 보내주기 위한 선물이에요!
+function Signup({ onBackToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -25,14 +26,18 @@ function Signup() {
       });
 
       const result = await response.text();
-      alert(result); // 자바에서 보낸 대답 띄우기
+
+      // 회원가입 성공 시 알림 띄우고 로그인 화면으로 보내기
+      alert(result);
+      if (response.ok) {
+        onBackToLogin(); // 👈 App.js에서 준 함수를 실행해서 화면을 바꿔요!
+      }
     } catch (error) {
       console.error("에러 발생!", error);
       alert("서버와 연결할 수 없어요! 백엔드가 켜져 있는지 확인해 보세요.");
     }
-  }; // 👈 여기서 handleSignup 함수가 끝납니다!
+  };
 
-  // 리액트 컴포넌트는 여기서부터 화면을 그립니다.
   return (
     <div
       style={{
@@ -44,11 +49,10 @@ function Signup() {
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
+        fontFamily: '"Noto Serif KR", serif',
       }}
     >
       <form onSubmit={handleSignup}>
-        {" "}
-        {/* 👈 handleSignup 함수를 바로 연결하세요 */}
         <h2
           style={{
             fontSize: "28px",
@@ -59,6 +63,7 @@ function Signup() {
         >
           나만의 팔레트 시작하기
         </h2>
+
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>
@@ -70,6 +75,7 @@ function Signup() {
               onChange={(e) => setName(e.target.value)}
               placeholder="성함을 입력하세요"
               style={inputStyle}
+              required
             />
           </div>
 
@@ -83,6 +89,7 @@ function Signup() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@mail.com"
               style={inputStyle}
+              required
             />
           </div>
 
@@ -96,9 +103,11 @@ function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호를 입력하세요"
               style={inputStyle}
+              required
             />
           </div>
         </div>
+
         <button
           type="submit"
           style={{
@@ -117,9 +126,24 @@ function Signup() {
           가입하기
         </button>
       </form>
+
+      {/* 👈 로그인 화면으로 돌아가고 싶을 때 누르는 버튼 */}
+      <p
+        onClick={onBackToLogin}
+        style={{
+          marginTop: "20px",
+          textAlign: "center",
+          fontSize: "14px",
+          color: "#999",
+          cursor: "pointer",
+          textDecoration: "underline",
+        }}
+      >
+        이미 계정이 있으신가요? 로그인하기
+      </p>
     </div>
   );
-} // 👈 Signup 함수가 여기서 닫혀야 해요!
+}
 
 const inputStyle = {
   width: "100%",
@@ -129,6 +153,7 @@ const inputStyle = {
   backgroundColor: "#fff",
   fontSize: "15px",
   outline: "none",
+  boxSizing: "border-box", // 패딩 때문에 칸이 넘치지 않게 방어!
 };
 
 export default Signup;
